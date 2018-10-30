@@ -7,6 +7,7 @@
 # biaobin, 2018-10-25, make dz=dzRef-dz, z<0 tail, z>0 head
 #                      also will make r56>0 in getmap.m
 # biaobin, 2018-10-26, solve bug for repetative -2 elements in the first several lines
+# biaobin, 2018-10-30, change delta=dgamma/gamma  to delta=dp/p
 
 #debug option
 #change to 1 to turn on debug output
@@ -104,24 +105,26 @@ cat $input >> $tmpRoot.10
 
 # change to geometry phase space
 # --------------------------------
+#add gamma beta p pz 
 sddsprocess $tmpRoot.10 $tmpRoot.20 \
-  -process=dz,first,dzRef \
+  -define=column,gamma,"gamma_central dgamma -" \
+  -define=column,beta,"1 1 gamma sqr / - sqrt"  \
+  -define=column,p,"gamma beta *"               
+  -define=column,pz,"gamma sqr 1 - px sqr - py sqr - sqrt" \
+
+
+#use first particle as the reference particle
+sddsprocess $tmpRoot.20 $tmpRoot.30
   -process=x,first,xRef  \
   -process=y,first,yRef  \
-  -process=dgamma,first,dgammaRef \
-  -define=parameter,gammaRef,"gamma_central dgammaRef -" \
-  -define=column,gamma,"gamma_central dgamma -" \
-  -define=column,pz,"gamma sqr px sqr - py sqr - 1 - sqrt" \
+  -process=dz,first,dzRef \
+  -process=p,first,pRef \
   -redefine=column,x,"x xRef -" \
-  -define=column,xp,"px pz /" \
   -redefine=column,y,"y yRef -" \
-  -define=column,yp,"py pz /" \
   -redefine=column,dz,"dzRef dz -" \
-  -define=column,delta,"gamma gammaRef - gammaRef /" \
-  -process=xp,first,xpRef \
-  -process=yp,first,ypRef \
-  -redefine=column,xp,"xp xpRef -" \
-  -redefine=column,yp,"yp ypRef -" 
+  -define=column,xp,"px pz /"  \
+  -define=column,yp,"py pz /"  \
+  -define=column,delta,"p pRef - pRef /" 
 
 # why cannot insure the order as (x,xp,y,yp,dz,delta)
 sddsconvert $tmpRoot.20 -pipe=out -retain=column,x,xp,y,yp,dz,delta \
