@@ -109,12 +109,12 @@ cat $input >> $tmpRoot.10
 sddsprocess $tmpRoot.10 $tmpRoot.20 \
   -define=column,gamma,"gamma_central dgamma -" \
   -define=column,beta,"1 1 gamma sqr / - sqrt"  \
-  -define=column,p,"gamma beta *"               
-  -define=column,pz,"gamma sqr 1 - px sqr - py sqr - sqrt" \
+  -define=column,p,"gamma beta *"               \
+  -define=column,pz,"gamma sqr 1 - px sqr - py sqr - sqrt" 
 
 
 #use first particle as the reference particle
-sddsprocess $tmpRoot.20 $tmpRoot.30
+sddsprocess $tmpRoot.20 $tmpRoot.30  \
   -process=x,first,xRef  \
   -process=y,first,yRef  \
   -process=dz,first,dzRef \
@@ -127,10 +127,10 @@ sddsprocess $tmpRoot.20 $tmpRoot.30
   -define=column,delta,"p pRef - pRef /" 
 
 # why cannot insure the order as (x,xp,y,yp,dz,delta)
-sddsconvert $tmpRoot.20 -pipe=out -retain=column,x,xp,y,yp,dz,delta \
+sddsconvert $tmpRoot.30 -pipe=out -retain=column,x,xp,y,yp,dz,delta \
    | sddsprocess -pipe=in $output
 
 if [[ $debug = 0 ]]; then
-	rm -rf $tmpRoot.1 $tmpRoot.2 $tmpRoot.10 $tmpRoot.20
+	rm -rf $tmpRoot.1 $tmpRoot.2 $tmpRoot.10 $tmpRoot.20 $tmpRoot.30
 fi
 
