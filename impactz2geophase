@@ -1,0 +1,136 @@
+#!/bin/bash
+# impactz2geometryphase
+# convert impactz -2 element output phase to (x, xp, y, yp, z, delta) format
+# biaobin, 2018-10-22, the first line particle is the reference particle
+# biaobin, 2018-10-23, gamma_central automatically imported from fort.18 and ImpactZ.in
+# biaobin, 2018-10-24, add if judgment statement
+# biaobin, 2018-10-25, make dz=dzRef-dz, z<0 tail, z>0 head
+#                      also will make r56>0 in getmap.m
+# biaobin, 2018-10-26, solve bug for repetative -2 elements in the first several lines
+# biaobin, 2018-10-30, change delta=dgamma/gamma  to delta=dp/p
+
+#debug option
+#change to 1 to turn on debug output
+debug=0
+
+if (( $# != 2 )); then
+  echo "Example Usage: impactz2geometryphase <fort.1000> <fort.1000.sdds>"
+  exit 1
+fi
+
+input=$1
+output=$2
+
+if [[ ! -e $input ]]; then
+  echo "Not found: $input"
+  exit 1
+fi
+
+if [[ -e $output ]]; then
+  echo "Warning: $output will be replaced."
+fi
+
+tmpRoot=tmp-`date +%s%N`
+
+#get watch id, fort.1000 -> 1000
+watchElement=`echo $input | tr -cd "[0-9]"`
+if [[ $debug = 1 ]]; then
+  echo "watch element=$watchElement"
+fi
+#1. eliminate the comment line
+#2. only keep the lattice line starting from 11
+grep -v '^!' ImpactZ.in | tail -n +12 > $tmpRoot.1
+
+#awk just like bash or csh, if you want to pass outside variable
+#you have to use -v ID=$tagID
+
+#get watchElement ID in lattice section
+watchLineID=`echo $NR | awk -v watchElement=$watchElement '$3 == watchElement {print NR}' $tmpRoot.1`
+
+if [[ $debug = 1 ]]; then
+  echo "watchElement line ID in lattice=$watchLineID"
+fi
+
+#only keep lines before watch line and excluded -2 watch element
+cat $tmpRoot.1 | sed "$watchLineID,\$d" | awk '$4 != -2' > $tmpRoot.2
+
+#if the first two lines both are -2 element, $tmpRoot.2 will be blank file
+
+#get map steps before watchElement
+if [[ ! -s "$tmpRoot.2"  ]]; then
+    totalStep=0
+    if [[ $debug = 1 ]]; then
+      echo "$tmpRoot.2 file is blank, effective elements before element $watchElement is 0."
+      echo "totalStep=$totalStep"
+    fi
+else
+    #get all the steps
+    totalStep=`echo $sum | awk '{sum += $2}; END {print sum}' $tmpRoot.2`
+    if [[ $debug = 1 ]]; then
+      echo "totalStep=$totalStep"
+    fi
+fi
+
+#get gamma_central in watch position
+gamma_central=`echo $3 | awk -v totalStep=$totalStep 'NR == ((totalStep  + 1)) {print $3}' fort.18`
+if [[ $debug = 1 ]]; then
+  echo "gamma= $gamma_central"
+fi
+# change input file to SDDS
+# ----------------------------------------
+# convert fort.1000 to SDDS data type
+echo \
+'SDDS1 \
+&parameter name=gamma_central,type=double, &end \
+&column name=x, units=m, type=double, &end \
+&column name=px,type=double, &end \
+&column name=y, units=m, type=double, &end \
+&column name=py,type=double, &end \
+&column name=dz, units=m, type=double, &end \
+&column name=dgamma,type=double, &end \
+&column name=q/m, type=double, &end \
+&column name=q/particle, type=double, &end \
+&column name=particleID, type=double, &end \
+&data mode=ascii, &end' \
+> $tmpRoot.10
+
+# write gamma_central to SDDS file
+echo $gamma_central >> $tmpRoot.10
+
+# get the particle number, use command substitution
+numP=`cat $input | wc -l`
+echo $numP >> $tmpRoot.10
+# add fort.1000 to SDDS file
+cat $input >> $tmpRoot.10
+
+# change to geometry phase space
+# --------------------------------
+#add gamma beta p pz 
+sddsprocess $tmpRoot.10 $tmpRoot.20 \
+  -define=column,gamma,"gamma_central dgamma -" \
+  -define=column,beta,"1 1 gamma sqr / - sqrt"  \
+  -define=column,p,"gamma beta *"               \
+  -define=column,pz,"gamma sqr 1 - px sqr - py sqr - sqrt" 
+
+
+#use first particle as the reference particle
+sddsprocess $tmpRoot.20 $tmpRoot.30  \
+  -process=x,first,xRef  \
+  -process=y,first,yRef  \
+  -process=dz,first,dzRef \
+  -process=p,first,pRef \
+  -redefine=column,x,"x xRef -" \
+  -redefine=column,y,"y yRef -" \
+  -redefine=column,dz,"dzRef dz -" \
+  -define=column,xp,"px pz /"  \
+  -define=column,yp,"py pz /"  \
+  -define=column,delta,"p pRef - pRef /" 
+
+# why cannot insure the order as (x,xp,y,yp,dz,delta)
+sddsconvert $tmpRoot.30 -pipe=out -retain=column,x,xp,y,yp,dz,delta \
+   | sddsprocess -pipe=in $output
+
+if [[ $debug = 0 ]]; then
+	rm -rf $tmpRoot.1 $tmpRoot.2 $tmpRoot.10 $tmpRoot.20 $tmpRoot.30
+fi
+
