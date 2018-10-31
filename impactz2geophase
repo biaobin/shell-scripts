@@ -1,6 +1,8 @@
 #!/bin/bash
-# impactz2geometryphase
+# impactz2geophase
 # convert impactz -2 element output phase to (x, xp, y, yp, z, delta) format
+# apply to all cases, no need to have refParticle in first line.
+
 # biaobin, 2018-10-22, the first line particle must be the reference particle
 # biaobin, 2018-10-23, gamma_central automatically imported from fort.18 and ImpactZ.in
 # biaobin, 2018-10-24, add if judgment statement for debugging
@@ -111,6 +113,8 @@ cat $input >> $tmpRoot.10
 # --------------------------------
 #add gamma beta p pz 
 sddsprocess $tmpRoot.10 $tmpRoot.20 \
+  -define=parameter,beta_central,"1 1 gamma_central sqr / - sqrt" \
+  -define=parameter,p_central,"gamma_central beta_central *" \
   -define=column,gamma,"gamma_central dgamma -" \
   -define=column,beta,"1 1 gamma sqr / - sqrt"  \
   -define=column,p,"gamma beta *"               \
@@ -119,16 +123,10 @@ sddsprocess $tmpRoot.10 $tmpRoot.20 \
 
 #use first particle as the reference particle
 sddsprocess $tmpRoot.20 $tmpRoot.30  \
-  -process=x,first,xRef  \
-  -process=y,first,yRef  \
-  -process=dz,first,dzRef \
-  -process=p,first,pRef \
-  -redefine=column,x,"x xRef -" \
-  -redefine=column,y,"y yRef -" \
-  -redefine=column,dz,"dzRef dz -" \
+  -redefine=column,dz,"dz -1 *" \
   -define=column,xp,"px pz /"  \
   -define=column,yp,"py pz /"  \
-  -define=column,delta,"p pRef - pRef /" 
+  -define=column,delta,"p p_central - p_central /" 
 
 # why cannot insure the order as (x,xp,y,yp,dz,delta)
 sddsconvert $tmpRoot.30 -pipe=out -retain=column,x,xp,y,yp,dz,delta \
