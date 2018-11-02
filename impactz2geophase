@@ -126,7 +126,7 @@ sddsprocess $tmpRoot.20 $tmpRoot.30  \
   -redefine=column,dz,"dz -1 *" \
   -define=column,xp,"px pz /"  \
   -define=column,yp,"py pz /"  \
-  -define=column,delta,"p p_central - p_central /" 
+  -define=column,delta,"gamma gamma_central - gamma_central /" 
 
 # why cannot insure the order as (x,xp,y,yp,dz,delta)
 sddsconvert $tmpRoot.30 -pipe=out -retain=column,x,xp,y,yp,dz,delta \
