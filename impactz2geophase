@@ -14,6 +14,8 @@
 # is always 0 in final phase output. So no need to minus the first particle phase.
 # Thus, this script can be used for all case -2 phase output, no matter whether there is 
 # reference particle in the first line in partcl.data
+# biaobin, 2018-11-06, phi->z, z=-phi*beta0*Scxl=-phi*beta0
+
 
 #debug option
 #change to 1 to turn on debug output
@@ -92,7 +94,7 @@ echo \
 &column name=px,type=double, &end \
 &column name=y, units=m, type=double, &end \
 &column name=py,type=double, &end \
-&column name=dz, units=m, type=double, &end \
+&column name=dphi, units=rad, type=double, &end \
 &column name=dgamma,type=double, &end \
 &column name=q/m, type=double, &end \
 &column name=q/particle, type=double, &end \
@@ -123,7 +125,7 @@ sddsprocess $tmpRoot.10 $tmpRoot.20 \
 
 #use first particle as the reference particle
 sddsprocess $tmpRoot.20 $tmpRoot.30  \
-  -redefine=column,dz,"dz -1 *" \
+  -define=column,dz,"dphi -1 * beta_central *" \
   -define=column,xp,"px pz /"  \
   -define=column,yp,"py pz /"  \
   -define=column,delta,"gamma gamma_central - gamma_central /" 
