@@ -1,0 +1,77 @@
+#!/bin/bash
+
+#usage: elegant2impactz input.sdds partcl.data Q[C]
+#       charge in [C], should be positive for electrons.
+#biaobin,2018-11-08, input.sdds => partcl.data
+
+if (( $# !=3 )); then
+	echo "Example usage: elegant2impactz input.sdds partcl.data 1E-9"
+	exit 1
+fi
+
+input=$1
+output=$2
+Q=$3
+
+if [[ ! -e $input ]]; then
+	echo "Not found: $input"
+	exit 1
+fi 
+
+if [[ -e $output ]]; then
+	echo "Warning: $output will be replaced."
+fi
+
+tmpRoot=tmp-`date +%s%N`
+
+#------------------
+#get px py pz
+sddsprocess $input tmpRoot.1 \
+	-define=column,pz,"p xp sqr yp sqr + 1 + sqrt /" \
+	-define=column,px,"pz xp *" \
+    -define=column,py,"pz yp *" \
+    -define=column,beta,"p p sqr 1 + sqrt /" \
+    -define=column,betaz,"pz p / beta *" \
+    -define=column,z,"betaz c_mks * t * -1 *" \
+    -process=z,ave,z_ave \
+    -define=column,dz,"z z_ave -" \
+    -redefine=column,x,"x xp dz * +" \
+    -redefine=column,y,"y yp dz * +" \
+    -process=p,ave,p_ave \
+    -define=parameter,beta0,"p_ave p_ave sqr 1 + sqrt /" \
+    -define=column,gamma,"p beta /" \
+    -process=gamma,ave,gamma_ave \
+    -define=column,dgamma,"gamma_ave gamma -" \
+    -define=column,phase,"dz beta0 / -1 *" \
+    -define=column,q/m,"-1 0.511001E6 /",type=double \
+    -define=column,Index,"i_row 1 +",type=long \
+    -define=column,q_macro,"-$Q Particles /",type=double 
+
+# get partcl.data
+#this gives sdds format
+#sddsconvert tmpRoot.1 -pipe=out -retain=column,x,px,y,py,phase,dgamma,q/m,Index \
+#	| sddsprocess -pipe=in $output
+
+sddsconvert tmpRoot.1 -pipe=out -retain=column,x,px,y,py,phase,dgamma,q/m,q_macro,Index \
+	| sdds2plaindata -pipe=in $output \
+	-outputMode=ascii -noRowCount  -separator="\t" \
+	-column=x,format=%22.15e \
+    -column=px,format=%22.15e \
+    -column=y,format=%22.15e \
+    -column=py,format=%22.15e \
+    -column=phase,format=%22.15e \
+    -column=dgamma,format=%22.15e \
+    -column=q/m,format=%22.15e \
+    -column=q_macro,format=%22.15e \
+    -column=Index,format=%4ld  
+    
+
+
+
+
+
+
+
+
+  
+
