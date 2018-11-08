@@ -15,7 +15,7 @@
 # Thus, this script can be used for all case -2 phase output, no matter whether there is 
 # reference particle in the first line in partcl.data
 # biaobin, 2018-11-06, phi->z, z=-phi*beta0*Scxl=-phi*beta0
-
+# biaobin, 2018-11-06, delta=dp/p in ImpactZ, which is right.
 
 #debug option
 #change to 1 to turn on debug output
@@ -128,7 +128,7 @@ sddsprocess $tmpRoot.20 $tmpRoot.30  \
   -define=column,dz,"dphi -1 * beta_central *" \
   -define=column,xp,"px pz /"  \
   -define=column,yp,"py pz /"  \
-  -define=column,delta,"gamma gamma_central - gamma_central /" 
+  -define=column,delta,"p p_central - p_central /" 
 
 # why cannot insure the order as (x,xp,y,yp,dz,delta)
 sddsconvert $tmpRoot.30 -pipe=out -retain=column,x,xp,y,yp,dz,delta \
