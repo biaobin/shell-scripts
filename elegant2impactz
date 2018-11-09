@@ -26,7 +26,7 @@ tmpRoot=tmp-`date +%s%N`
 
 #------------------
 #get px py pz
-sddsprocess $input tmpRoot.1 \
+sddsprocess $input $tmpRoot.1 \
 	-define=column,pz,"p xp sqr yp sqr + 1 + sqrt /" \
 	-define=column,px,"pz xp *" \
     -define=column,py,"pz yp *" \
@@ -45,14 +45,15 @@ sddsprocess $input tmpRoot.1 \
     -define=column,phase,"dz beta0 / -1 *" \
     -define=column,q/m,"-1 0.511001E6 /",type=double \
     -define=column,Index,"i_row 1 +",type=long \
-    -define=column,q_macro,"-$Q Particles /",type=double 
+    -process=Index,last,Np \
+    -define=column,q_macro,"-$Q Np /",type=double 
 
 # get partcl.data
 #this gives sdds format
-#sddsconvert tmpRoot.1 -pipe=out -retain=column,x,px,y,py,phase,dgamma,q/m,Index \
+#sddsconvert $tmpRoot.1 -pipe=out -retain=column,x,px,y,py,phase,dgamma,q/m,Index \
 #	| sddsprocess -pipe=in $output
 
-sddsconvert tmpRoot.1 -pipe=out -retain=column,x,px,y,py,phase,dgamma,q/m,q_macro,Index \
+sddsconvert $tmpRoot.1 -pipe=out -retain=column,x,px,y,py,phase,dgamma,q/m,q_macro,Index \
 	| sdds2plaindata -pipe=in $output \
 	-outputMode=ascii -noRowCount  -separator="\t" \
 	-column=x,format=%22.15e \
@@ -65,13 +66,3 @@ sddsconvert tmpRoot.1 -pipe=out -retain=column,x,px,y,py,phase,dgamma,q/m,q_macr
     -column=q_macro,format=%22.15e \
     -column=Index,format=%4ld  
     
-
-
-
-
-
-
-
-
-  
-
