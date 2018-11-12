@@ -46,7 +46,8 @@ sddsprocess $input $tmpRoot.1 \
     -define=column,q/m,"-1 0.511001E6 /",type=double \
     -define=column,Index,"i_row 1 +",type=long \
     -process=Index,last,Np \
-    -define=column,q_macro,"-$Q Np /",type=double 
+    -define=column,q_macro,"-$Q Np /",type=double \
+
 
 # get partcl.data
 #this gives sdds format
@@ -66,3 +67,15 @@ sddsconvert $tmpRoot.1 -pipe=out -retain=column,x,px,y,py,phase,dgamma,q/m,q_mac
     -column=q_macro,format=%22.15e \
     -column=Index,format=%4ld  
     
+# get particle number
+Np=`cat $output | wc -l`
+
+# write into the first line
+sed -i "1i\\$Np 0 0" $output
+
+rm -f $tmpRoot.1
+
+
+
+
+
