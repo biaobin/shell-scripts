@@ -1,0 +1,50 @@
+#!/bin/csh -f
+
+# elegant2geometryphase
+# converts elegant phase-space output file to (x,xp,y,yp,z,delta) format
+# Biaobin Li, 2018-10-16, USTC/LBNL
+# biaobin, 2018-10-17, mean value is Reference Value
+
+if ($#argv != 2) then
+	echo "usage: elegant2geomotryphase <input> <output>"
+	exit 1
+endif
+
+set input  = $1
+set output = $2
+
+# check whether file exists
+if ( ! -e $input ) then
+	echo "Not found: $input"
+	exit 1
+endif
+if ( -e $output ) then
+	echo "In use: $output"
+	exit 1
+endif
+
+set tmpRoot = tmp-`date +%s%N`
+
+#echo $tmpRoot
+
+# get beta and betaz for each particle
+sddsprocess $input $tmpRoot.1 \
+	-process=p,average,aveP \
+    -define=column,pz,"p xp sqr yp sqr + 1 + sqrt /" \
+    -define=column,px,"pz xp *" \
+    -define=column,py,"pz yp *" \
+    -define=column,beta,"p p sqr 1 + sqrt /"  \
+    -define=column,betaz,"pz p / beta *" \
+    -define=column,z,"t c_mks * betaz *" \
+    -process=z,ave,z0 \
+    -define=column,dz,"z z0 -",units=m \
+    -define=column,delta,"p aveP - aveP /" \
+    -redefine=column,x,"x dz xp * +",units=m \
+    -redefine=column,y,"y dz yp * +",units=m 
+
+# write into $output
+sddsconvert $tmpRoot.1 -pipe=out -retain=column,x,xp,y,yp,dz,delta \
+ 	| sddsprocess -pipe=in $output 
+
+rm -rf $tmpRoot.1
+    
