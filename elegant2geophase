@@ -1,26 +1,27 @@
-#!/bin/csh -f
+#!/bin/bash
 # converts elegant phase-space output file to (x,xp,y,yp,z,delta) format
 # biaobin, 2018-10-17, mean value is Reference Value
 
-if ($#argv != 2) then
+if (( $# !=2 )); then
 	echo "usage: elegant2geomotryphase <input> <output>"
 	exit 1
-endif
+fi
 
-set input  = $1
-set output = $2
+input=$1
+output=$2
 
 # check whether file exists
-if ( ! -e $input ) then
+if [[ ! -e $input ]]; then
 	echo "Not found: $input"
 	exit 1
-endif
-if ( -e $output ) then
+fi
+
+if [[ -e $output ]]; then
 	echo "In use: $output"
 	exit 1
-endif
+fi
 
-set tmpRoot = tmp-`date +%s%N`
+tmpRoot=tmp-`date +%s%N`
 
 #echo $tmpRoot
 
