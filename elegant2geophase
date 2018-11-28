@@ -1,8 +1,5 @@
 #!/bin/csh -f
-
-# elegant2geometryphase
 # converts elegant phase-space output file to (x,xp,y,yp,z,delta) format
-# Biaobin Li, 2018-10-16, USTC/LBNL
 # biaobin, 2018-10-17, mean value is Reference Value
 
 if ($#argv != 2) then
