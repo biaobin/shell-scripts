@@ -35,7 +35,7 @@ sddsprocess $input $tmpRoot.1 \
     -define=column,betaz,"pz p / beta *" \
     -define=column,z,"t c_mks * betaz *" \
     -process=z,ave,z0 \
-    -define=column,dz,"z z0 -",units=m \
+    -define=column,dz,"z0 z -",units=m \
     -define=column,delta,"p aveP - aveP /" \
     -redefine=column,x,"x dz xp * +",units=m \
     -redefine=column,y,"y dz yp * +",units=m 
