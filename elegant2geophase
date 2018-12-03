@@ -38,7 +38,11 @@ sddsprocess $input $tmpRoot.1 \
     -define=column,dz,"z0 z -",units=m \
     -define=column,delta,"p aveP - aveP /" \
     -redefine=column,x,"x dz xp * +",units=m \
-    -redefine=column,y,"y dz yp * +",units=m 
+    -redefine=column,y,"y dz yp * +",units=m \
+    -process=x,ave,x0 \
+    -process=y,ave,y0 \
+    -redefine=column,x,"x x0 -" \
+    -redefine=column,y,"y y0 -" 
 
 # write into $output
 sddsconvert $tmpRoot.1 -pipe=out -retain=column,x,xp,y,yp,dz,delta \
