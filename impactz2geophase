@@ -16,6 +16,8 @@
 # reference particle in the first line in partcl.data
 # biaobin, 2018-11-06, phi->z, z=-phi*beta0*Scxl=-phi*beta0
 # biaobin, 2018-11-06, delta=dp/p in ImpactZ, which is right.
+# biaobin, 2018-12-06, echo E0 by default, this version can only automaticaly delete -2 element, other minus
+# element can not be deleted which may induce bugs.
 
 #debug option
 #change to 1 to turn on debug output
@@ -81,9 +83,15 @@ fi
 
 #get gamma_central in watch position
 gamma_central=`echo $3 | awk -v totalStep=$totalStep 'NR == ((totalStep  + 1)) {print $3}' fort.18`
+
 if [[ $debug = 1 ]]; then
   echo "gamma= $gamma_central"
 fi
+
+#echo E0 by default
+E0=`echo "$gamma_central"|awk '{ printf("%25.15e\n",$1*0.511001)}'`
+echo "E0= $E0 MeV"
+
 # change input file to SDDS
 # ----------------------------------------
 # convert fort.1000 to SDDS data type
