@@ -3,6 +3,7 @@
 #usage: elegant2impactz input.sdds partcl.data Q[C]
 #       charge in [C], should be positive for electrons.
 #biaobin,2018-11-08, input.sdds => partcl.data
+#biaobin,2018-12-05, input.sdds only need to change dz and delta, x no need to add xp*dz
 
 if (( $# !=3 )); then
 	echo "Example usage: elegant2impactz input.sdds partcl.data 1E-9"
@@ -35,8 +36,6 @@ sddsprocess $input $tmpRoot.1 \
     -define=column,z,"betaz c_mks * t * -1 *" \
     -process=z,ave,z_ave \
     -define=column,dz,"z z_ave -" \
-    -redefine=column,x,"x xp dz * +" \
-    -redefine=column,y,"y yp dz * +" \
     -process=p,ave,p_ave \
     -define=parameter,beta0,"p_ave p_ave sqr 1 + sqrt /" \
     -define=column,gamma,"p beta /" \
