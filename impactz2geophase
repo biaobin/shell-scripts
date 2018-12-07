@@ -90,7 +90,7 @@ fi
 
 #echo E0 by default
 E0=`echo "$gamma_central"|awk '{ printf("%25.15e\n",$1*0.511001)}'`
-echo "E0= $E0 MeV"
+echo "Processing $input: E0= $E0 MeV"
 
 # change input file to SDDS
 # ----------------------------------------
