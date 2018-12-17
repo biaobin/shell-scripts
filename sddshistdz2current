@@ -1,0 +1,24 @@
+#!/bin/bash
+#biaobin, 2018-12-17, sddshis2current
+#         convert (dz,frequency) to (dz,frequency,current[A])
+
+if (( $# !=2 )); then
+        echo "usage: sddshisdz2current fort.1000.his Q"
+        exit 1
+fi
+
+input=$1
+Q=$2  #total charge
+
+#check whether file exists
+if [[ ! -e $input ]]; then
+        echo "Not found: $input"
+        exit 1
+fi
+
+sddsprocess $input \
+        -define=parameter,q,"$Q sddshistBinned /",units=C  \
+        -define=column,dt,"sddshistBinSize beta_central / c_mks /",units=s \
+        -define=column,current,"q frequency * dt /",units=A
+
+echo "Column of current was added."
