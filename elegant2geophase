@@ -17,8 +17,7 @@ if [[ ! -e $input ]]; then
 fi
 
 if [[ -e $output ]]; then
-	echo "In use: $output"
-	exit 1
+	echo "$output will be replaced."
 fi
 
 tmpRoot=tmp-`date +%s%N`
@@ -47,6 +46,9 @@ sddsprocess $input $tmpRoot.1 \
 # write into $output
 sddsconvert $tmpRoot.1 -pipe=out -retain=column,x,xp,y,yp,dz,delta \
  	| sddsprocess -pipe=in $output 
+
+# txt file format, for gnuplot plotting
+sdds2stream $output -column=x,xp,y,yp,dz,delta > $output.2
 
 rm -rf $tmpRoot.1
     
